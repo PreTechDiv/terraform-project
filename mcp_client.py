@@ -60,12 +60,13 @@ load_dotenv()  # load environment variables from .env
 import os
 
 # Set the environment variable directly
-OPENAI_API_BASE=os.environ["OPENAI_API_BASE"]
-GITHUB_MCP_TOKEN_FINE_GRAINED = os.environ['GITHUB_MCP_TOKEN_FINE_GRAINED']
-GITHUB_MCP_TOKEN_CLASSIC = os.environ['GITHUB_MCP_TOKEN_CLASSIC']
+os.environ['OPENAI_API_KEY'] = os.getenv('OPEN_API_KEY_GPT_4.1')
+os.environ["OPENAI_API_BASE"]=os.getenv("OPENAI_API_BASE")
+GITHUB_MCP_TOKEN_FINE_GRAINED = os.getenv('GITHUB_MCP_TOKEN_FINE_GRAINED')
+GITHUB_MCP_TOKEN_CLASSIC = os.getenv('GITHUB_MCP_TOKEN_CLASSIC')
 
-GITHUB_MCP_URL = os.environ('GITHUB_MCP_URL')  # Or your actual endpoint
-MICROSOFT_MCP_URL=os.environ('MICROSOFT_MCP_URL')
+GITHUB_MCP_URL = os.getenv('GITHUB_MCP_URL')  # Or your actual endpoint
+MICROSOFT_MCP_URL=os.getenv('MICROSOFT_MCP_URL')
 
 class MCPClient:
     def __init__(self):
@@ -103,15 +104,14 @@ class MCPClient:
         headers = {
         "Authorization": f"Bearer {GITHUB_MCP_TOKEN_CLASSIC}"
         }
-        sse_transport = await self.exit_stack.enter_async_context(sse_client(GITHUB_MCP_URL , headers=headers))
-        # sse_transport = await self.exit_stack.enter_async_context(sse_client(MICROSOFT_MCP_URL))
-        print('we are here at line 108 before github session')
-        github_session = await self.exit_stack.enter_async_context(ClientSession(*sse_transport))
-        print('we are here at line 110 before git hub session initialization')
-        await github_session.initialize()
-        print('we are here at line 112 after git hub session initialization')
-        self.sessions["github"] = github_session
-        print("GitHub MCP tools:", [tool.name for tool in github_session.list_tools()])
+        # sse_transport = await self.exit_stack.enter_async_context(sse_client(GITHUB_MCP_URL , headers=headers))
+        # print('we are here at line 108 before github session')
+        # github_session = await self.exit_stack.enter_async_context(ClientSession(*sse_transport))
+        # print('we are here at line 110 before git hub session initialization')
+        # await github_session.initialize()
+        # print('we are here at line 112 after git hub session initialization')
+        # self.sessions["github"] = github_session
+        # print("GitHub MCP tools:", [tool.name for tool in github_session.list_tools()])
 
 
         # Merge tools and map tool names to sessions

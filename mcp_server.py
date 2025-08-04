@@ -23,15 +23,17 @@ from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
 import os
+from dotenv import load_dotenv
 
 # Initialize FastMCP server
+load_dotenv()
 mcp = FastMCP("weather")
 
 # Constants
 NWS_API_BASE = "https://api.weather.gov"
 USER_AGENT = "weather-app/1.0"
-GITHUB_MCP_URL = os.environ['GITHUB_MCP_URL']
-GITHUB_MCP_TOKEN_CLASSIC = os.environ['GITHUB_MCP_TOKEN_CLASSIC']
+GITHUB_MCP_URL = os.getenv('GITHUB_MCP_URL')
+GITHUB_MCP_TOKEN_CLASSIC = os.getenv('GITHUB_MCP_TOKEN_CLASSIC')
 
 
 async def make_nws_request(url: str) -> dict[str, Any] | None:
