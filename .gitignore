@@ -1,0 +1,11 @@
+terra-env/
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# Local .env or secrets
+*.tfvars
+*.tfvars.json
+.env
