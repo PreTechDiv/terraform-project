@@ -51,7 +51,8 @@ from contextlib import AsyncExitStack
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from mcp.client.sse import sse_client
-
+from mcp.client.streamable_http import streamablehttp_client
+from datetime import timedelta
 from openai import OpenAI
 from dotenv import load_dotenv
 import json
@@ -113,6 +114,26 @@ class MCPClient:
         # self.sessions["github"] = github_session
         # print("GitHub MCP tools:", [tool.name for tool in github_session.list_tools()])
 
+        read_stream, write_stream, get_session_id = await self.exit_stack.enter_async_context(
+            streamablehttp_client(
+                url=MICROSOFT_MCP_URL,
+                headers={},  # authentication not required for docs
+                timeout=timedelta(seconds=60),
+                sse_read_timeout=timedelta(minutes=5),
+                terminate_on_close=True,
+            )
+        )
+        # Step 2: create ClientSession inside async with
+        self.sessions["mslearn"] = await self.exit_stack.enter_async_context(
+            ClientSession(
+                read_stream=read_stream,
+                write_stream=write_stream,
+                read_timeout_seconds=timedelta(seconds=60),
+            )
+        )
+
+        await self.sessions["mslearn"].initialize()
+        # self.sessions["mslearn"] = microsoft_session
 
         # Merge tools and map tool names to sessions
         self.tool_to_session = {}
@@ -127,12 +148,26 @@ class MCPClient:
 
     async def process_query(self, query: str) -> str:
         """Process a query using OpenAI and available tools"""
+        # messages = [
+        #     {
+        #         "role": "user",
+        #         "content": query
+        #     }
+        # ]
+
         messages = [
-            {
-                "role": "user",
-                "content": query
-            }
-        ]
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a Microsoft services expert. If the user asks about Azure, Microsoft 365, Power Platform, "
+                        "Teams, or similar topics, call the `microsoft_docs_search` tool to find documentation before answering."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": query
+                }
+            ]
 
         available_tools = [{
             "type": "function",
@@ -143,11 +178,12 @@ class MCPClient:
             }
         } for tool in self.all_tools]
 
+        tool_choice = {"type": "function", "function": {"name": "microsoft_docs_search"}}
         response = self.openai.chat.completions.create(
             model="gpt-4.1",
             messages=messages,
             tools=available_tools,
-            tool_choice="auto",
+            tool_choice=tool_choice,
         )
 
         final_text = []
@@ -186,6 +222,8 @@ class MCPClient:
                         "name": tool_name,
                         "content": result.content,
                     })
+
+                print(messages)
                 response = self.openai.chat.completions.create(
                     model="gpt-4o",
                     messages=messages,

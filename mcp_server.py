@@ -19,7 +19,7 @@
 #     mcp.run(transport='sse')
 
 
-from typing import Any
+from typing import Any , Optional
 import httpx
 from mcp.server.fastmcp import FastMCP
 import os
@@ -75,6 +75,16 @@ async def get_github_user(username: str) -> str:
             return f"User: {data['login']}\nName: {data.get('name')}\nPublic repos: {data['public_repos']}"
         else:
             return f"Error: {resp.status_code} {resp.text}"
+        
+MS_LEARN_MCP_URL = "https://learn.microsoft.com/api/mcp"
+MCP_SERVER_LABEL = "mslearn"
+
+SYSTEM = (
+    "You are an expert assistant about Microsoft services. "
+    "You can call the MSP docs tool to retrieve official documentation snippets."
+)
+USER_PROMPT = "Ask me anything about Microsoft cloud, 365, Azure, Power Platform, Teams, etc."
+
 
 @mcp.tool()
 async def get_alerts(state: str) -> str:
